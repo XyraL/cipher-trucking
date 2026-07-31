@@ -153,14 +153,22 @@ function nui(endpoint, data = {}) {
             return null;
         });
 
+    // The timer MUST be cleared when the request wins the race.
+    // Promise.race resolves with the first settled promise but does not cancel
+    // the other one, so an uncleared timer keeps running and fires its warning
+    // twelve seconds later even though the request already succeeded. That
+    // logged a "did not respond" line for every healthy call — one burst per
+    // tab render, naming exactly the endpoints that tab had used — which read
+    // as a loading fault that was never actually there.
+    let timer;
     const timeout = new Promise((resolve) => {
-        setTimeout(() => {
+        timer = setTimeout(() => {
             console.warn(`[cipher-trucking] '${endpoint}' did not respond within ${NUI_TIMEOUT_MS}ms`);
             resolve(null);
         }, NUI_TIMEOUT_MS);
     });
 
-    return Promise.race([request, timeout]);
+    return Promise.race([request, timeout]).finally(() => clearTimeout(timer));
 }
 
 function toast(message, type = 'info') {

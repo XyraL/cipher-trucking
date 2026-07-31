@@ -2,6 +2,27 @@
 
 All notable changes to **Cipher — Trucking**.
 
+## [2.0.4] — 2026-07-31
+
+### Fixed
+- **"did not respond within 12000ms" was logged for requests that had already
+  succeeded.** The timeout added in 2.0.0 raced a `setTimeout` against the
+  request, but `Promise.race` does not cancel the loser — so the timer kept
+  running and fired its warning twelve seconds later regardless of the
+  outcome. Every healthy call produced one, arriving as a burst per tab
+  render and naming exactly the endpoints that tab had used, which read as a
+  loading fault that was not there. The timer is now cleared when the race
+  settles. A genuinely unanswered request still warns, once.
+
+## [2.0.3] — 2026-07-31
+
+### Added
+- `/truckingtrace` — logs both ends of every NUI request
+  (`page SENT -> client IN -> client OUT -> page GOT`) so a dropped request
+  can be traced to the hop that lost it.
+- The page-side fetch `.catch()` now logs instead of silently returning null.
+  A fetch that rejects is a different fault from one that never settles.
+
 ## [2.0.2] — 2026-07-31
 
 ### Added

@@ -7,86 +7,43 @@
 -- If a function behaves differently on your build, this file is the only
 -- place you need to touch.
 -- ─────────────────────────────────────────────────────────────
--- ── NUI callback dispatch fix (client only) ──────────────────
--- FiveM will not dispatch the next NUI callback while the current handler is
--- still yielding. Nearly every handler in this resource calls
--- lib.callback.await for a server round-trip, which yields — so the dashboard
--- opening four requests at once meant they ran strictly one after another,
--- each waiting out the full latency of the one before it.
---
--- The give-away was `getMapMeta` timing out at 12 seconds. That handler is
--- pure client-side: it reads Config and returns, with nothing async in it. A
--- synchronous handler can only take 12 seconds if it was never dispatched
--- until then — which is queueing, not slowness. (This is also why spamming a
--- tab "fixed" it: the retry landed after the queue had drained.)
---
--- Running each handler in its own thread lets the registration return
--- immediately, so FiveM moves straight on to the next queued callback and the
--- round-trips overlap instead of stacking. `cb` is safe to call later from
--- another thread.
---
--- Patching the registrar rather than each call site covers all of client/
--- main.lua, fuel.lua, company.lua and admin.lua, plus anything added later.
--- This file is first in client_scripts, so the override is in place before
+-- ── NUI callback wrapper (client only) ───────────────────────
+-- Patches the registrar rather than each call site, so every NUI callback in
+-- the resource gets both guarantees below, including any added later. This
+-- file is first in client_scripts, so the override is in place before
 -- anything registers.
-NUI_PATCHED = false
-NUI_REGISTERED = {}
-NUI_TRACE = false
-
+--
+-- 1. Each handler runs in its own thread. FiveM will not dispatch the next NUI
+--    callback while the current one is still yielding, and nearly every
+--    handler here yields on a server round-trip — so the dashboard opening
+--    several requests at once would run them strictly one after another.
+--
+-- 2. A nil payload is sent as `false`. cb(nil) sends no response body at all,
+--    leaving the page's fetch pending forever — not resolved, not rejected.
+--    Several callbacks return nil perfectly legitimately (getActiveJob when no
+--    delivery is running, which is most of the time), so any panel awaiting
+--    one of those alongside other data never finished loading. `false`
+--    encodes to JSON, and every consumer tests these results for truthiness,
+--    so "no data" still reads as "no data".
 if not IsDuplicityVersion() then
-    -- Guarded: if the runtime hasn't defined RegisterNUICallback yet, capturing
-    -- nil here would make every later registration throw and silently leave the
-    -- dashboard with no handlers at all — a worse failure than the one being
-    -- fixed.
+    -- Guarded: if the runtime hasn't defined RegisterNUICallback yet,
+    -- capturing nil would make every later registration throw and leave the
+    -- dashboard with no handlers at all.
     if type(RegisterNUICallback) == 'function' then
         local _registerNUI = RegisterNUICallback
 
         RegisterNUICallback = function(name, handler)
-            NUI_REGISTERED[#NUI_REGISTERED + 1] = name
             return _registerNUI(name, function(data, cb)
-                -- Traced at both ends, because "the request never came back"
-                -- has three completely different causes and the symptom looks
-                -- identical for all of them:
-                --   no IN            -> the fetch never reached the client
-                --   IN but no OUT    -> the handler stalled or errored
-                --   IN and OUT fast  -> the reply never reached the page
-                -- Toggle with /truckingtrace.
-                local t0 = GetGameTimer()
-                if NUI_TRACE then
-                    print(('^3[cipher-trucking]^0 NUI IN  <- %s'):format(name))
-                end
-
                 CreateThread(function()
                     handler(data, function(payload, ...)
-                        if NUI_TRACE then
-                            print(('^2[cipher-trucking]^0 NUI OUT -> %s (%dms)'):format(name, GetGameTimer() - t0))
-                        end
-
-                        -- THE fix for tabs stuck on "Loading...".
-                        --
-                        -- cb(nil) sends no response body at all, so the page's
-                        -- fetch never settles — not resolved, not rejected,
-                        -- just pending forever. Several callbacks return nil
-                        -- perfectly legitimately (getActiveJob when you have
-                        -- no delivery running, which is most of the time), and
-                        -- any panel doing Promise.all with one of those never
-                        -- finished.
-                        --
-                        -- false is the right substitute: it encodes to JSON
-                        -- fine, and every consumer tests these results for
-                        -- truthiness (`if (!job)`, `job || null`), so "no data"
-                        -- still reads as "no data".
                         if payload == nil then payload = false end
-
                         cb(payload, ...)
                     end)
                 end)
             end)
         end
-
-        NUI_PATCHED = true
     else
-        print('^1[cipher-trucking]^0 RegisterNUICallback unavailable when the bridge loaded — NUI dispatch patch skipped.')
+        print('^1[cipher-trucking]^0 RegisterNUICallback unavailable when the bridge loaded — NUI wrapper skipped.')
     end
 end
 

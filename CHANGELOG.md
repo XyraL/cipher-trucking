@@ -2,6 +2,18 @@
 
 All notable changes to **Cipher — Trucking**.
 
+## [2.1.1] — 2026-07-31
+
+### Removed
+- The temporary diagnostics added in 2.0.2 and 2.0.3 (`/truckingdiag`,
+  `/truckingtrace`, `client/diag.lua`, the `diagPing` callback and the
+  page-side request tracing). They existed to locate the loading bug fixed in
+  2.1.0 and have no reason to ship now that it's found.
+
+The NUI wrapper they helped identify stays, and now carries both guarantees in
+one place: every handler runs in its own thread, and a nil payload is sent as
+`false` so a response is never dropped.
+
 ## [2.1.0] — 2026-07-31
 
 ### Fixed

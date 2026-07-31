@@ -127,29 +127,18 @@ const SFX = (() => {
 // and the player sees an empty state they can retry, instead of a dead tab.
 const NUI_TIMEOUT_MS = 12000;
 
-// Toggled from Lua by /truckingtrace. Pairs with the IN/OUT logging in
-// bridge/framework.lua so a request can be followed across both sides:
-// page SENT -> client IN -> client OUT -> page GOT.
-let NUI_TRACE = false;
-
 function nui(endpoint, data = {}) {
-    const t0 = performance.now();
-    if (NUI_TRACE) console.log(`[cipher-trucking] page SENT -> ${endpoint}`);
-
     const request = fetch(`https://${RES}/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
         body: JSON.stringify(data),
     })
-        .then((r) => {
-            if (NUI_TRACE) console.log(`[cipher-trucking] page GOT <- ${endpoint} (${Math.round(performance.now() - t0)}ms, HTTP ${r.status})`);
-            return r.json();
-        })
+        .then((r) => r.json())
         .catch((err) => {
-            // Logged rather than swallowed: a fetch that REJECTS is a very
-            // different fault from one that never settles, and the silent
-            // catch here hid that distinction.
-            if (NUI_TRACE) console.log(`[cipher-trucking] page ERR <- ${endpoint} (${Math.round(performance.now() - t0)}ms) ${err}`);
+            // Logged rather than swallowed: a fetch that rejects is a
+            // different fault from one that never settles, and a silent catch
+            // hides that distinction.
+            console.warn(`[cipher-trucking] '${endpoint}' failed:`, err);
             return null;
         });
 
@@ -369,10 +358,6 @@ window.addEventListener('message', (ev) => {
     if (action === 'open') openUI();
     else if (action === 'close') closeUI();
     else if (action === 'openAdmin') AdminConsole.open();
-    else if (action === 'trace') {
-        NUI_TRACE = !!data;
-        console.log(`[cipher-trucking] page trace ${NUI_TRACE ? 'ON' : 'OFF'}`);
-    }
     else if (action === 'hud') renderHud(data);
     else if (action === 'mapTick') {
         state.mapPlayer = data;

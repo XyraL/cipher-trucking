@@ -57,18 +57,6 @@ do
     end
 end
 
--- Deliberately touches nothing: no database, no settings, no player lookup.
--- Its whole job is to time the client->server transport in isolation, so
--- /truckingdiag can tell "the round-trip is slow" apart from "a query is slow".
-lib.callback.register('cipher-trucking:server:diagPing', function(src)
-    return {
-        dbReady  = DBReady,
-        dbFailed = DBFailed,
-        settings = Settings ~= nil,
-        time     = os.time(),
-    }
-end)
-
 DBReady = false
 DBFailed = false
 

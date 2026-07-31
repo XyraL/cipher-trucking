@@ -2,6 +2,24 @@
 
 All notable changes to **Cipher — Trucking**.
 
+## [2.0.2] — 2026-07-31
+
+### Added
+- **`/truckingdiag`** — walks the whole request chain and prints where it
+  breaks: which NUI callbacks registered, whether the dispatch patch
+  installed, a timed server round-trip that touches no database, the server's
+  database state, and a timed real query for comparison. Run it and paste the
+  output when reporting a loading problem.
+- A startup warning that fires if **no** NUI callbacks registered, which means
+  a client file failed to load and every dashboard request will time out. That
+  condition previously produced no message at all — only the symptom.
+
+### Fixed
+- The NUI dispatch patch now checks that `RegisterNUICallback` exists before
+  wrapping it. Capturing it too early would have left every later registration
+  throwing, and the dashboard with no handlers at all — a worse failure than
+  the one being fixed.
+
 ## [2.0.1] — 2026-07-31
 
 ### Fixed

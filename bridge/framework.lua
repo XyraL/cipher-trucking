@@ -29,13 +29,27 @@
 -- main.lua, fuel.lua, company.lua and admin.lua, plus anything added later.
 -- This file is first in client_scripts, so the override is in place before
 -- anything registers.
-if not IsDuplicityVersion() then
-    local _registerNUI = RegisterNUICallback
+NUI_PATCHED = false
+NUI_REGISTERED = {}
 
-    RegisterNUICallback = function(name, handler)
-        return _registerNUI(name, function(data, cb)
-            CreateThread(function() handler(data, cb) end)
-        end)
+if not IsDuplicityVersion() then
+    -- Guarded: if the runtime hasn't defined RegisterNUICallback yet, capturing
+    -- nil here would make every later registration throw and silently leave the
+    -- dashboard with no handlers at all — a worse failure than the one being
+    -- fixed.
+    if type(RegisterNUICallback) == 'function' then
+        local _registerNUI = RegisterNUICallback
+
+        RegisterNUICallback = function(name, handler)
+            NUI_REGISTERED[#NUI_REGISTERED + 1] = name
+            return _registerNUI(name, function(data, cb)
+                CreateThread(function() handler(data, cb) end)
+            end)
+        end
+
+        NUI_PATCHED = true
+    else
+        print('^1[cipher-trucking]^0 RegisterNUICallback unavailable when the bridge loaded — NUI dispatch patch skipped.')
     end
 end
 

@@ -5,7 +5,7 @@ lua54 'yes'
 name 'cipher-trucking'
 author 'XyraL'
 description 'Cipher — Trucking. Civilian delivery-job loop for QBox/QBCore.'
-version '2.0.1'
+version '2.0.2'
 
 -- Works on QBox (qbx_core) OR QBCore (qb-core). The bridge auto-detects.
 dependencies {
@@ -26,6 +26,8 @@ client_scripts {
     'client/fuel.lua',
     'client/company.lua',
     'client/admin.lua',
+    -- Last: it counts what everything above registered.
+    'client/diag.lua',
 }
 
 server_scripts {

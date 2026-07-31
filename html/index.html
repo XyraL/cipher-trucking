@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cipher Trucking</title>
+<!--
+  style.css has always asked for Oswald / Inter / JetBrains Mono but nothing
+  ever loaded them, so the whole dashboard silently fell back to Segoe UI.
+  If your players run without internet access, download these three families
+  and swap this for local @font-face rules — the CSS stack already lists
+  system fallbacks, so a failed fetch degrades instead of breaking.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app-overlay" class="hidden">
+        <div id="app-container">
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+
+            <!-- Terminal boot animation, drawn over the whole container on
+                 open and torn down when the sequence finishes. Matches the
+                 boot sequences in `cipher` and `cipher-drugs`. -->
+            <div id="boot-overlay">
+                <div id="boot-inner">
+                    <div id="boot-mark">C</div>
+                    <div id="boot-title">CIPHER<span>TRUCKING</span></div>
+                    <div id="boot-lines"></div>
+                    <div id="boot-bar"><div id="boot-bar-fill"></div></div>
+                </div>
+            </div>
+
+            <nav id="sidebar">
+                <div id="sidebar-logo">
+                    <div class="logo-mark">C</div>
+                    <div>
+                        <div class="logo-text">CIPHER<span>TRUCKING</span></div>
+                        <div class="logo-version">DEPOT TERMINAL v2.0</div>
+                    </div>
+                </div>
+
+                <ul id="nav-list">
+                    <li class="nav-item active" data-tab="contracts"><span class="nav-icon">&#9638;</span> Contracts</li>
+                    <li class="nav-item" data-tab="map"><span class="nav-icon">&#9906;</span> Route Map</li>
+                    <li class="nav-item" data-tab="active"><span class="nav-icon">&#9654;</span> Active Delivery</li>
+                    <li class="nav-item" data-tab="career"><span class="nav-icon">&#9733;</span> Career</li>
+                    <li class="nav-item" data-tab="analytics"><span class="nav-icon">&#9202;</span> Analytics</li>
+                    <li class="nav-item" data-tab="receipts"><span class="nav-icon">&#9776;</span> Receipts</li>
+                    <li class="nav-item" data-tab="leaderboard"><span class="nav-icon">&#9636;</span> Leaderboard</li>
+                    <li class="nav-item" data-tab="garage"><span class="nav-icon">&#9873;</span> Garage</li>
+                    <li class="nav-item" data-tab="company"><span class="nav-icon">&#9878;</span> Company</li>
+                    <li class="nav-item" data-tab="settings"><span class="nav-icon">&#9881;</span> Settings</li>
+                </ul>
+
+                <div id="driver-card">
+                    <div class="driver-card-inner">
+                        <div class="driver-avatar">&#128666;</div>
+                        <div class="driver-card-info">
+                            <div id="driver-title">Rookie Hauler</div>
+                            <div id="driver-sub">Lvl -- &middot; $0 earned</div>
+                        </div>
+                    </div>
+                    <div id="driver-xp-track"><div id="driver-xp-fill"></div></div>
+                </div>
+
+                <button id="close-btn">&#10005; CLOSE</button>
+            </nav>
+
+            <main id="content">
+                <div id="tab-contracts" class="tab-panel active"></div>
+                <div id="tab-map" class="tab-panel"></div>
+                <div id="tab-active" class="tab-panel"></div>
+                <div id="tab-career" class="tab-panel"></div>
+                <div id="tab-analytics" class="tab-panel"></div>
+                <div id="tab-receipts" class="tab-panel"></div>
+                <div id="tab-leaderboard" class="tab-panel"></div>
+                <div id="tab-garage" class="tab-panel"></div>
+                <div id="tab-company" class="tab-panel"></div>
+                <div id="tab-settings" class="tab-panel"></div>
+            </main>
+        </div>
+    </div>
+
+    <div id="hud-overlay" class="hidden">
+        <div id="hud-label"></div>
+        <div id="hud-distance"></div>
+        <div id="hud-stops"></div>
+        <div id="hud-fuel" class="hidden">
+            <div class="hud-fuel-label">FUEL</div>
+            <div class="hud-fuel-track"><div id="hud-fuel-fill"></div></div>
+            <div id="hud-fuel-pct"></div>
+        </div>
+    </div>
+
+    <!-- Ops console. Shares this document with the dashboard and the HUD, so
+         every class in here is ad-* prefixed — a bare class name collided
+         across stylesheets in cipher-drugs and made buttons unclickable. -->
+    <div id="admin-overlay" class="hidden">
+        <div id="admin-container">
+            <div class="admin-header">
+                <div class="admin-title">&#9888; TRUCKING OPS CONSOLE
+                    <span class="ad-status"><span class="ad-led"></span>ONLINE</span>
+                </div>
+                <button id="admin-close-btn">&#10005; CLOSE</button>
+            </div>
+            <div id="ad-tabs">
+                <div class="ad-tab active" data-adtab="overview">Overview</div>
+                <div class="ad-tab" data-adtab="players">Players</div>
+                <div class="ad-tab" data-adtab="fleet">Fleet</div>
+                <div class="ad-tab" data-adtab="companies">Companies</div>
+                <div class="ad-tab" data-adtab="control">Control</div>
+                <div class="ad-tab" data-adtab="logs">Logs</div>
+            </div>
+            <div id="admin-body"><div class="empty-state">Loading...</div></div>
+        </div>
+    </div>
+
+    <div id="toast-stack"></div>
+
+    <!-- admin.js last: it reuses app.js's nui/esc/toast helpers. -->
+    <script src="js/map.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

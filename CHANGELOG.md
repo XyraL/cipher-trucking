@@ -2,6 +2,21 @@
 
 All notable changes to **Cipher — Trucking**.
 
+## [2.1.0] — 2026-07-31
+
+### Fixed
+- **Tabs stuck on "Loading..." — the actual root cause.** `cb(nil)` sends no
+  response body, so the page's fetch never settles: not resolved, not
+  rejected, pending forever. `getActiveJob` returns nil whenever you have no
+  delivery running — which is most of the time — and both the Contracts and
+  Route Map tabs await it alongside their own data via `Promise.all`, which
+  never resolves if one member never settles. `getCareer` and `getAnalytics`
+  could do the same.
+
+  Every NUI response now substitutes `false` for a nil payload. It encodes to
+  JSON, and every consumer already tests these results for truthiness, so
+  "no data" still reads as "no data".
+
 ## [2.0.4] — 2026-07-31
 
 ### Fixed

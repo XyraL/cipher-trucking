@@ -57,11 +57,28 @@ if not IsDuplicityVersion() then
                 end
 
                 CreateThread(function()
-                    handler(data, function(...)
+                    handler(data, function(payload, ...)
                         if NUI_TRACE then
                             print(('^2[cipher-trucking]^0 NUI OUT -> %s (%dms)'):format(name, GetGameTimer() - t0))
                         end
-                        cb(...)
+
+                        -- THE fix for tabs stuck on "Loading...".
+                        --
+                        -- cb(nil) sends no response body at all, so the page's
+                        -- fetch never settles — not resolved, not rejected,
+                        -- just pending forever. Several callbacks return nil
+                        -- perfectly legitimately (getActiveJob when you have
+                        -- no delivery running, which is most of the time), and
+                        -- any panel doing Promise.all with one of those never
+                        -- finished.
+                        --
+                        -- false is the right substitute: it encodes to JSON
+                        -- fine, and every consumer tests these results for
+                        -- truthiness (`if (!job)`, `job || null`), so "no data"
+                        -- still reads as "no data".
+                        if payload == nil then payload = false end
+
+                        cb(payload, ...)
                     end)
                 end)
             end)

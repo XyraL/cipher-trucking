@@ -31,6 +31,7 @@
 -- anything registers.
 NUI_PATCHED = false
 NUI_REGISTERED = {}
+NUI_TRACE = false
 
 if not IsDuplicityVersion() then
     -- Guarded: if the runtime hasn't defined RegisterNUICallback yet, capturing
@@ -43,7 +44,26 @@ if not IsDuplicityVersion() then
         RegisterNUICallback = function(name, handler)
             NUI_REGISTERED[#NUI_REGISTERED + 1] = name
             return _registerNUI(name, function(data, cb)
-                CreateThread(function() handler(data, cb) end)
+                -- Traced at both ends, because "the request never came back"
+                -- has three completely different causes and the symptom looks
+                -- identical for all of them:
+                --   no IN            -> the fetch never reached the client
+                --   IN but no OUT    -> the handler stalled or errored
+                --   IN and OUT fast  -> the reply never reached the page
+                -- Toggle with /truckingtrace.
+                local t0 = GetGameTimer()
+                if NUI_TRACE then
+                    print(('^3[cipher-trucking]^0 NUI IN  <- %s'):format(name))
+                end
+
+                CreateThread(function()
+                    handler(data, function(...)
+                        if NUI_TRACE then
+                            print(('^2[cipher-trucking]^0 NUI OUT -> %s (%dms)'):format(name, GetGameTimer() - t0))
+                        end
+                        cb(...)
+                    end)
+                end)
             end)
         end
 

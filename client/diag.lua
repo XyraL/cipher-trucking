@@ -40,6 +40,23 @@ CreateThread(function()
     end
 end)
 
+-- Logs every NUI request as it arrives and as it is answered. The diagnostics
+-- above prove the Lua side works when called FROM Lua; this is the only thing
+-- that shows what happens when the page itself asks.
+RegisterCommand('truckingtrace', function()
+    NUI_TRACE = not NUI_TRACE
+    -- Mirror the flag into the page so both ends of a request are logged.
+    SendNUIMessage({ action = 'trace', data = NUI_TRACE })
+    print(('^3[cipher-trucking]^0 NUI trace %s'):format(NUI_TRACE and '^2ON^0 — open the dashboard now' or '^1OFF^0'))
+    if NUI_TRACE then
+        print('^3[cipher-trucking]^0 Expect a matching IN/OUT pair per request. What you see means:')
+        print('^3[cipher-trucking]^0   nothing at all      the page never reached the client')
+        print('^3[cipher-trucking]^0   IN with no OUT      the handler stalled')
+        print('^3[cipher-trucking]^0   IN + OUT, but the   the reply never reached the page')
+        print('^3[cipher-trucking]^0   page still times out')
+    end
+end, false)
+
 RegisterCommand('truckingdiag', function()
     print('^3[cipher-trucking] ── diagnostics ──────────────────────────^0')
 

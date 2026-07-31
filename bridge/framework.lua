@@ -7,6 +7,38 @@
 -- If a function behaves differently on your build, this file is the only
 -- place you need to touch.
 -- ─────────────────────────────────────────────────────────────
+-- ── NUI callback dispatch fix (client only) ──────────────────
+-- FiveM will not dispatch the next NUI callback while the current handler is
+-- still yielding. Nearly every handler in this resource calls
+-- lib.callback.await for a server round-trip, which yields — so the dashboard
+-- opening four requests at once meant they ran strictly one after another,
+-- each waiting out the full latency of the one before it.
+--
+-- The give-away was `getMapMeta` timing out at 12 seconds. That handler is
+-- pure client-side: it reads Config and returns, with nothing async in it. A
+-- synchronous handler can only take 12 seconds if it was never dispatched
+-- until then — which is queueing, not slowness. (This is also why spamming a
+-- tab "fixed" it: the retry landed after the queue had drained.)
+--
+-- Running each handler in its own thread lets the registration return
+-- immediately, so FiveM moves straight on to the next queued callback and the
+-- round-trips overlap instead of stacking. `cb` is safe to call later from
+-- another thread.
+--
+-- Patching the registrar rather than each call site covers all of client/
+-- main.lua, fuel.lua, company.lua and admin.lua, plus anything added later.
+-- This file is first in client_scripts, so the override is in place before
+-- anything registers.
+if not IsDuplicityVersion() then
+    local _registerNUI = RegisterNUICallback
+
+    RegisterNUICallback = function(name, handler)
+        return _registerNUI(name, function(data, cb)
+            CreateThread(function() handler(data, cb) end)
+        end)
+    end
+end
+
 Framework = { name = nil, core = nil }
 
 if GetResourceState('qbx_core') == 'started' then

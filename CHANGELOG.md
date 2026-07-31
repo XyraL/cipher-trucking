@@ -2,6 +2,21 @@
 
 All notable changes to **Cipher — Trucking**.
 
+## [2.0.1] — 2026-07-31
+
+### Fixed
+- **Tabs took seconds to load, or only loaded after clicking twice.** FiveM
+  does not dispatch the next NUI callback while the current handler is still
+  yielding, and nearly every handler here yields on a server round-trip. With
+  the dashboard opening four requests at once, they ran strictly one after
+  another instead of overlapping.
+
+  The give-away was `getMapMeta` timing out — a handler that only reads config
+  and returns, with nothing async in it. A synchronous handler can only take
+  twelve seconds if it was never dispatched until then. Each handler now runs
+  in its own thread so the registration returns immediately and the requests
+  overlap.
+
 ## [2.0.0] — 2026-07-31
 
 First public release.

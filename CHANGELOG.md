@@ -53,9 +53,6 @@ Leaderboard, Garage, Company and Settings.
   `config.lua`.
 
 ### Fixed before release
-This resource had never been booted when the audit below was carried out, so
-these were all found statically or during the first in-game test:
-
 - **Tabs could hang on "Loading..." forever.** A Lua error inside any
   `lib.callback.register` handler meant the callback never responded, so the
   client's `lib.callback.await` never returned and the NUI `fetch` never

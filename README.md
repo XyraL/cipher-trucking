@@ -1,13 +1,25 @@
-# Cipher — Trucking (v1.5)
+<h1 align="center">Cipher Trucking</h1>
 
-A civilian delivery-job resource for **QBox (qbx_core)** and **QBCore (qb-core)**.
-Open the depot computer for a full dashboard — browse contracts (including
-rotating bonus-payout ones), track your career and driver rating, check
-personal and company leaderboards, buy/upgrade/paint trucks and trailers,
-spend a company's perk points, and found or run (or disband) a trucking
-company — then hitch a trailer, drive the rig to the delivery point(s), and
-bring the truck back to the depot for cash + XP. Fully standalone — no
-dependency on any other Cipher script.
+<p align="center">A civilian trucking job for <strong>QBox</strong> and <strong>QBCore</strong> — live route map, truck ownership, fuel and maintenance, and companies.</p>
+
+<p align="center">
+  <a href="https://github.com/XyraL/cipher-trucking/releases"><img src="https://img.shields.io/github/v/release/XyraL/cipher-trucking?style=flat-square&color=f5bb55&label=release" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/framework-QBox%20%7C%20QBCore-55dcff?style=flat-square" alt="framework">
+  <img src="https://img.shields.io/badge/price-free-30d158?style=flat-square" alt="price">
+  <a href="https://xyralscripts.dev/docs-cipher-trucking"><img src="https://img.shields.io/badge/docs-xyralscripts.dev-a889ff?style=flat-square" alt="docs"></a>
+  <a href="https://discord.gg/XRURAw4TM2"><img src="https://img.shields.io/badge/support-discord-5865F2?style=flat-square" alt="support"></a>
+</p>
+
+<p align="center">
+  <a href="https://xyralscripts.dev/cipher-trucking">Website</a> &nbsp;·&nbsp;
+  <a href="https://xyralscripts.dev/docs-cipher-trucking">Setup guide</a> &nbsp;·&nbsp;
+  <a href="https://github.com/XyraL/cipher-trucking/releases">Releases</a> &nbsp;·&nbsp;
+  <a href="https://discord.gg/XRURAw4TM2">Discord</a>
+</p>
+
+<!-- SCREENSHOTS: drop 2-3 in-game shots here once captured -->
+
+---
 
 ## Requirements
 - `ox_lib`
@@ -43,9 +55,14 @@ dependency on any other Cipher script.
 > name any server file that failed to load.
 
 ## ⚠️ Before going live
-- Every `model` in `Config.Trucking.Shop` (trucks **and** trailers) is a
-  **placeholder** — verify each one spawns correctly on your build before
-  going live.
+- **Shop vehicle models.** `packer` and `phantom` are base-game tractors and
+  need no checking. `phantom3` is DLC, and both trailer models are worth
+  confirming against your own build. Every shop truck must be a **tractor unit
+  with a fifth wheel** — box trucks like `mule3` look right but have no hitch
+  and can never pull a trailer.
+- **Refuel station coordinates** ship as defaults and were picked from
+  coordinates rather than by standing on them — worth a look if you use the
+  maintenance system.
 - The depot computer, truck spawn/return spots, trailer spawn spots, and all
   starter contract destinations (Docks / Airport / Movie Set / Vinewood) are
   confirmed ground-level and safe to use as-is. Add, remove, or edit entries
@@ -285,3 +302,31 @@ dashboard is a thin client-side layer on top of the same server callbacks —
 nothing NUI-specific lives server-side. The company system
 (`server/company.lua`) is a direct structural port of this codebase's `cipher`
 gang system (ranks/permissions/treasury/reputation), renamed to fit trucking.
+
+---
+
+## Documentation
+
+Full setup guide, requirements and troubleshooting:
+**[xyralscripts.dev/docs-cipher-trucking](https://xyralscripts.dev/docs-cipher-trucking)**
+
+## Support
+
+- **Found a bug?** [Open an issue](https://github.com/XyraL/cipher-trucking/issues)
+- **Need setup help?** [Join the Discord](https://discord.gg/XRURAw4TM2) — check the setup guide first, it usually has the answer
+
+## The rest of the Cipher line
+
+All free, all source-available.
+
+| Script | What it is |
+|---|---|
+| **[Cipher](https://github.com/XyraL/cipher)** | modular criminal device for QBox and QBCore — gang ops, blackmarket and boosting in one encrypted tablet. |
+| **[Cipher MDT](https://github.com/XyraL/cipher-mdt)** | full police MDT for QBox and QBCore — live CAD dispatch, civilian records, warrants, BOLOs and supervisor audit. |
+| **[Cipher Admin](https://github.com/XyraL/cipher-admin)** | advanced admin suite for QBox and QBCore — player management, bans, reports, inventory tools and entity inspection. |
+| **[Cipher Drone](https://github.com/XyraL/cipher-drone)** | deployable police drone for QBox and QBCore — smooth flight, thermal, spotlight, tracker darts and real counterplay. |
+
+## License
+
+Free to use on any server you own or operate, including commercial ones.
+**Do not redistribute or resell** — see [LICENSE](LICENSE) for the full terms.
